@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, MenuIcon, Plus, X } from "lucide-react";
+import { Bell, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import SearchBar from "@/components/SearchBar";
 import CategoryButton from "@/components/CategoryButton";
@@ -19,7 +19,6 @@ interface RecentItem {
 
 const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [showAddOptions, setShowAddOptions] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -49,23 +48,10 @@ const Dashboard = () => {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    // In a real app, we would filter the data based on the query
   };
 
-  const handleAddNew = (type: "note" | "password" | "document") => {
-    setShowAddOptions(false);
-    // Navigate to the appropriate page
-    switch (type) {
-      case "note":
-        navigate("/notes/new");
-        break;
-      case "password":
-        navigate("/passwords/new");
-        break;
-      case "document":
-        navigate("/documents/new");
-        break;
-    }
+  const handleItemClick = (item: RecentItem) => {
+    navigate(`/${item.type}s/${item.id}`);
   };
 
   const filteredItems = recentItems.filter(
@@ -84,8 +70,11 @@ const Dashboard = () => {
           <button className="p-2 rounded-full bg-secondary/50">
             <Bell className="h-5 w-5 text-muted-foreground" />
           </button>
-          <button className="p-2 rounded-full bg-secondary/50">
-            <MenuIcon className="h-5 w-5 text-muted-foreground" />
+          <button 
+            className="p-2 rounded-full bg-secondary/50"
+            onClick={() => navigate("/settings")}
+          >
+            <Settings className="h-5 w-5 text-muted-foreground" />
           </button>
         </div>
       </div>
@@ -117,7 +106,7 @@ const Dashboard = () => {
                 description={item.description}
                 type={item.type}
                 date={item.date}
-                onClick={() => navigate(`/${item.type}s/${item.id}`)}
+                onClick={() => handleItemClick(item)}
               />
             ))
           ) : (
@@ -130,53 +119,10 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Add Button with Options */}
-      {showAddOptions ? (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 flex items-center justify-center">
-          <div className="bg-card p-6 rounded-lg max-w-sm w-full mx-4">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-medium">Add New Item</h2>
-              <button
-                onClick={() => setShowAddOptions(false)}
-                className="p-1 rounded-full hover:bg-secondary/50"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="space-y-3">
-              <button
-                onClick={() => handleAddNew("note")}
-                className="w-full text-left p-3 flex items-center gap-3 rounded-lg hover:bg-secondary/50"
-              >
-                <div className="rounded-full bg-vault-purple/10 p-2">
-                  <Plus className="h-4 w-4 text-vault-purple" />
-                </div>
-                <span>Add Secure Note</span>
-              </button>
-              <button
-                onClick={() => handleAddNew("password")}
-                className="w-full text-left p-3 flex items-center gap-3 rounded-lg hover:bg-secondary/50"
-              >
-                <div className="rounded-full bg-vault-purple/10 p-2">
-                  <Plus className="h-4 w-4 text-vault-purple" />
-                </div>
-                <span>Add Password</span>
-              </button>
-              <button
-                onClick={() => handleAddNew("document")}
-                className="w-full text-left p-3 flex items-center gap-3 rounded-lg hover:bg-secondary/50"
-              >
-                <div className="rounded-full bg-vault-purple/10 p-2">
-                  <Plus className="h-4 w-4 text-vault-purple" />
-                </div>
-                <span>Add Document</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <AddButton onClick={() => setShowAddOptions(true)} />
-      )}
+      {/* Add Button */}
+      <AddButton 
+        onClick={() => navigate("/notes")} 
+      />
 
       {/* Bottom Navigation */}
       <BottomNavigation />
