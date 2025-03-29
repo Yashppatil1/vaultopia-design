@@ -16,6 +16,7 @@ interface Document {
   type: string;
   size?: string;
   date: string;
+  file?: File;
 }
 
 const Documents = () => {
@@ -51,16 +52,12 @@ const Documents = () => {
       id: Date.now().toString(),
       title: "New Document",
       description: "Click to add description",
-      type: "PDF",
+      type: "Unknown",
       size: "0 KB",
       date: new Date().toLocaleString(),
     };
     
-    setDocuments([newDocument, ...documents]);
-    toast({
-      title: "Document created",
-      description: "Your secure document has been created successfully.",
-    });
+    setSelectedDocument(newDocument);
   };
 
   const handleDocumentClick = (document: Document) => {
@@ -71,6 +68,39 @@ const Documents = () => {
     setSelectedDocument(null);
   };
 
+  const handleSaveDocument = (updatedDocument: Document) => {
+    const documentIndex = documents.findIndex(doc => doc.id === updatedDocument.id);
+    
+    if (documentIndex >= 0) {
+      // Update existing document
+      const updatedDocuments = [...documents];
+      updatedDocuments[documentIndex] = updatedDocument;
+      setDocuments(updatedDocuments);
+    } else {
+      // Add new document
+      setDocuments([updatedDocument, ...documents]);
+    }
+    
+    toast({
+      title: "Document saved",
+      description: "Your document has been saved successfully.",
+    });
+    setSelectedDocument(null);
+  };
+
+  const handleDeleteDocument = () => {
+    if (selectedDocument) {
+      setDocuments(documents.filter(doc => doc.id !== selectedDocument.id));
+      
+      toast({
+        title: "Document deleted",
+        description: "Your document has been deleted.",
+        variant: "destructive",
+      });
+      setSelectedDocument(null);
+    }
+  };
+
   const filteredDocuments = documents.filter(
     (document) =>
       document.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -79,7 +109,14 @@ const Documents = () => {
   );
 
   if (selectedDocument) {
-    return <DocumentDetail document={selectedDocument} onClose={handleCloseDetail} />;
+    return (
+      <DocumentDetail 
+        document={selectedDocument} 
+        onClose={handleCloseDetail} 
+        onSave={handleSaveDocument}
+        onDelete={handleDeleteDocument}
+      />
+    );
   }
 
   return (
