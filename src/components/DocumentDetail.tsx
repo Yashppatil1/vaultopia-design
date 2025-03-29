@@ -133,8 +133,8 @@ const DocumentDetail: React.FC<DocumentDetailProps> = ({
           <Button
             variant="outline"
             onClick={() => {
-              // Correctly access the DOM element
-              const fileInput = document.getElementById('file-upload');
+              // Correctly access the DOM element using window.document instead of the 'document' prop
+              const fileInput = window.document.getElementById('file-upload');
               if (fileInput) {
                 fileInput.click();
               }
