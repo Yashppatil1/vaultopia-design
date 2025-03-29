@@ -1,9 +1,12 @@
 
-import { useState, useRef } from "react";
-import { ArrowLeft, Download, Save, Trash, Upload, File } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState, ChangeEvent } from "react";
+import { ArrowLeft, Trash2, Save, Upload } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-interface Document {
+interface DocumentFile {
   id: string;
   title: string;
   description?: string;
@@ -14,197 +17,157 @@ interface Document {
 }
 
 interface DocumentDetailProps {
-  document: Document;
+  document: DocumentFile;
   onClose: () => void;
-  onSave?: (updatedDocument: Document) => void;
-  onDelete?: () => void;
+  onSave: (document: DocumentFile) => void;
+  onDelete: () => void;
 }
 
-const DocumentDetail = ({ document, onClose, onSave, onDelete }: DocumentDetailProps) => {
-  const [editedDocument, setEditedDocument] = useState<Document>({ ...document });
+const DocumentDetail: React.FC<DocumentDetailProps> = ({ 
+  document, 
+  onClose, 
+  onSave,
+  onDelete
+}) => {
+  const [title, setTitle] = useState(document.title);
+  const [description, setDescription] = useState(document.description || "");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      
+      // Create file preview
+      const fileReader = new FileReader();
+      fileReader.onload = (event) => {
+        if (event.target?.result) {
+          setPreviewUrl(event.target.result as string);
+        }
+      };
+      fileReader.readAsDataURL(file);
+    }
+  };
 
   const handleSave = () => {
-    if (onSave) {
-      onSave(editedDocument);
-    } else {
-      toast({
-        title: "Document saved",
-        description: "Your document has been saved successfully.",
-      });
-      onClose();
-    }
-  };
-
-  const handleDelete = () => {
-    if (onDelete) {
-      onDelete();
-    } else {
-      toast({
-        title: "Document deleted",
-        description: "Your document has been deleted.",
-        variant: "destructive",
-      });
-      onClose();
-    }
-  };
-
-  const handleDownload = () => {
-    if (previewUrl) {
-      const link = document.createElement('a');
-      link.href = previewUrl;
-      link.download = editedDocument.title || 'document';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+    const updatedDocument = {
+      ...document,
+      title,
+      description,
+      type: selectedFile ? selectedFile.type.split('/')[1].toUpperCase() : document.type,
+      size: selectedFile ? `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB` : document.size,
+      date: new Date().toLocaleString(),
+      file: selectedFile || document.file
+    };
     
-    toast({
-      title: "Document downloaded",
-      description: "Your document has been downloaded.",
-    });
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Generate preview URL
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
-
-    // Update document details
-    setEditedDocument({
-      ...editedDocument,
-      title: file.name.split('.')[0] || 'New Document',
-      type: file.type || 'application/pdf',
-      size: `${(file.size / 1024).toFixed(1)} KB`,
-      file: file
-    });
-
-    toast({
-      title: "File uploaded",
-      description: "Your file has been uploaded successfully.",
-    });
-  };
-
-  const triggerFileUpload = () => {
-    fileInputRef.current?.click();
+    onSave(updatedDocument);
   };
 
   return (
-    <div className="min-h-screen p-4 flex flex-col">
+    <div className="min-h-screen p-4 flex flex-col bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <button
+      <div className="flex items-center justify-between mb-6">
+        <button 
           onClick={onClose}
-          className="p-2 rounded-full bg-secondary/50"
+          className="p-2 rounded-full hover:bg-secondary/50"
         >
-          <ArrowLeft className="h-5 w-5 text-muted-foreground" />
+          <ArrowLeft className="h-6 w-6" />
         </button>
         <div className="flex gap-2">
-          {previewUrl && (
-            <button
-              onClick={handleDownload}
-              className="p-2 rounded-full bg-secondary/50 text-muted-foreground"
-            >
-              <Download className="h-5 w-5" />
-            </button>
-          )}
-          <button
-            onClick={handleSave}
-            className="p-2 rounded-full bg-vault-purple/20 text-vault-purple"
+          <Button 
+            variant="destructive" 
+            size="icon"
+            onClick={onDelete}
           >
-            <Save className="h-5 w-5" />
-          </button>
-          <button
-            onClick={handleDelete}
-            className="p-2 rounded-full bg-destructive/20 text-destructive"
-          >
-            <Trash className="h-5 w-5" />
-          </button>
+            <Trash2 className="h-4 w-4" />
+          </Button>
+          <Button onClick={handleSave}>
+            <Save className="h-4 w-4 mr-2" />
+            Save
+          </Button>
         </div>
       </div>
-
-      {/* Document Information */}
-      <div className="flex-1">
-        <input
-          type="text"
-          value={editedDocument.title}
-          onChange={(e) =>
-            setEditedDocument({ ...editedDocument, title: e.target.value })
-          }
-          className="w-full text-xl font-bold mb-2 bg-transparent border-none focus:outline-none focus:ring-0"
-        />
-
-        <input
-          type="text"
-          value={editedDocument.description || ""}
-          onChange={(e) =>
-            setEditedDocument({ ...editedDocument, description: e.target.value })
-          }
-          placeholder="Add a description"
-          className="w-full text-sm text-muted-foreground mb-4 bg-transparent border-none focus:outline-none focus:ring-0"
-        />
-
-        {/* File Input */}
-        <input 
-          type="file" 
-          ref={fileInputRef} 
-          className="hidden" 
-          onChange={handleFileUpload} 
-          accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
-        />
-
-        {/* Document Preview */}
-        <div className="bg-white/5 rounded-lg border border-white/10 p-6 h-64 flex flex-col items-center justify-center">
-          {previewUrl ? (
-            <div className="flex flex-col items-center w-full h-full">
-              {editedDocument.type?.includes('image') ? (
+      
+      {/* Document Form */}
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="title" className="block text-sm font-medium mb-1">Document Title</label>
+          <Input
+            id="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Enter document title"
+          />
+        </div>
+        
+        <div>
+          <label htmlFor="description" className="block text-sm font-medium mb-1">Description (Optional)</label>
+          <Textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Add a description"
+            rows={3}
+          />
+        </div>
+        
+        {/* File Upload Section */}
+        <div className="border border-dashed border-input rounded-lg p-6 flex flex-col items-center justify-center">
+          <div className="mb-4">
+            <Upload className="h-10 w-10 text-muted-foreground mb-2" />
+            <p className="text-center text-sm text-muted-foreground">
+              Drag and drop your file here or click to browse
+            </p>
+            <p className="text-center text-xs text-muted-foreground mt-1">
+              Supports PDF, images, and documents
+            </p>
+          </div>
+          
+          <Input
+            id="file-upload"
+            type="file"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          <Button
+            variant="outline"
+            onClick={() => document.getElementById('file-upload')?.click()}
+          >
+            Select File
+          </Button>
+        </div>
+        
+        {/* File Preview */}
+        {previewUrl && (
+          <div className="mt-4">
+            <h3 className="text-sm font-medium mb-2">Preview:</h3>
+            {selectedFile?.type.startsWith('image/') ? (
+              <div className="relative aspect-video rounded-lg overflow-hidden bg-secondary/30 flex items-center justify-center">
                 <img 
                   src={previewUrl} 
-                  alt={editedDocument.title} 
-                  className="max-w-full max-h-40 object-contain mb-2"
+                  alt="File preview" 
+                  className="max-h-full max-w-full object-contain"
                 />
-              ) : (
-                <div className="rounded-full bg-vault-purple/10 p-3 mb-3">
-                  <File className="h-6 w-6 text-vault-purple" />
-                </div>
-              )}
-              <p className="text-center font-medium">{editedDocument.title}</p>
-              <p className="text-xs text-muted-foreground mt-1">{editedDocument.type} - {editedDocument.size}</p>
-              <button 
-                onClick={handleDownload}
-                className="mt-4 px-4 py-2 bg-vault-purple/20 text-vault-purple rounded-md text-sm flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Download
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center">
-              <div className="rounded-full bg-vault-purple/10 p-3 mb-3">
-                <Upload className="h-6 w-6 text-vault-purple" />
               </div>
-              <p className="text-center font-medium">Upload a document</p>
-              <p className="text-xs text-muted-foreground mt-1 mb-4">PDF, DOCX, TXT, JPG, PNG</p>
-              <button 
-                onClick={triggerFileUpload}
-                className="px-4 py-2 bg-vault-purple/20 text-vault-purple rounded-md text-sm flex items-center gap-2"
-              >
-                <Upload className="h-4 w-4" />
-                Choose File
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Last modified */}
-      <div className="text-xs text-muted-foreground mt-4">
-        Last modified: {editedDocument.date}
+            ) : (
+              <Alert>
+                <AlertDescription>
+                  {selectedFile?.name} ({selectedFile?.type.split('/')[1].toUpperCase()} file, {(selectedFile?.size / (1024 * 1024)).toFixed(2)} MB)
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        )}
+        
+        {/* Display Existing Document Info */}
+        {!previewUrl && document.size && (
+          <Alert>
+            <AlertDescription>
+              {document.title} ({document.type} file, {document.size})
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
     </div>
   );

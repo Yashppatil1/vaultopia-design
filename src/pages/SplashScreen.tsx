@@ -17,7 +17,9 @@ const SplashScreen = () => {
   return (
     <div className="h-screen w-full flex flex-col items-center justify-center bg-vault-dark">
       <div className="animate-fade-in">
-        <VaultLogo size={120} animated />
+        <div className="flex justify-center">
+          <VaultLogo animated />
+        </div>
         <h1 className="text-3xl font-bold mt-4 text-center text-white animate-pulse-slow">
           Secure Vault
         </h1>
