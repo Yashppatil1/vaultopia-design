@@ -15,28 +15,17 @@ interface Password {
 interface PasswordDetailProps {
   password: Password;
   onClose: () => void;
+  onSave: (updatedPassword: Password) => void;
+  onDelete: () => void;
 }
 
-const PasswordDetail = ({ password, onClose }: PasswordDetailProps) => {
+const PasswordDetail = ({ password, onClose, onSave, onDelete }: PasswordDetailProps) => {
   const [editedPassword, setEditedPassword] = useState<Password>({ ...password });
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
 
   const handleSave = () => {
-    toast({
-      title: "Password saved",
-      description: "Your password has been saved successfully.",
-    });
-    onClose();
-  };
-
-  const handleDelete = () => {
-    toast({
-      title: "Password deleted",
-      description: "Your password has been deleted.",
-      variant: "destructive",
-    });
-    onClose();
+    onSave(editedPassword);
   };
 
   const copyToClipboard = (text: string, fieldName: string) => {
@@ -69,7 +58,7 @@ const PasswordDetail = ({ password, onClose }: PasswordDetailProps) => {
             <Save className="h-5 w-5" />
           </button>
           <button
-            onClick={handleDelete}
+            onClick={onDelete}
             className="p-2 rounded-full bg-destructive/20 text-destructive"
           >
             <Trash className="h-5 w-5" />
