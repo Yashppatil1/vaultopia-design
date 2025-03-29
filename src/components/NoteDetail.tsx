@@ -14,29 +14,45 @@ interface Note {
 interface NoteDetailProps {
   note: Note;
   onClose: () => void;
+  onSave?: (note: Note) => void;
+  onDelete?: () => void;
 }
 
-const NoteDetail = ({ note, onClose }: NoteDetailProps) => {
+const NoteDetail = ({ note, onClose, onSave, onDelete }: NoteDetailProps) => {
   const [editedNote, setEditedNote] = useState<Note>({ ...note });
   const { toast } = useToast();
 
   const handleSave = () => {
-    // In a real app, save to database/storage
-    toast({
-      title: "Note saved",
-      description: "Your note has been saved successfully.",
-    });
-    onClose();
+    // Update the date when saving
+    const updatedNote = {
+      ...editedNote,
+      date: new Date().toLocaleString()
+    };
+    
+    if (onSave) {
+      onSave(updatedNote);
+    } else {
+      // Fallback for compatibility with existing code
+      toast({
+        title: "Note saved",
+        description: "Your note has been saved successfully.",
+      });
+      onClose();
+    }
   };
 
   const handleDelete = () => {
-    // In a real app, delete from database/storage
-    toast({
-      title: "Note deleted",
-      description: "Your note has been deleted.",
-      variant: "destructive",
-    });
-    onClose();
+    if (onDelete) {
+      onDelete();
+    } else {
+      // Fallback for compatibility with existing code
+      toast({
+        title: "Note deleted",
+        description: "Your note has been deleted.",
+        variant: "destructive",
+      });
+      onClose();
+    }
   };
 
   return (

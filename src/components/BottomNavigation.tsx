@@ -1,5 +1,5 @@
 
-import { File, Home, Key, Settings } from "lucide-react";
+import { File, FolderLock, Home, Key, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -23,9 +23,9 @@ const BottomNavigation = () => {
       path: "/passwords",
     },
     {
-      icon: Settings,
-      label: "Settings",
-      path: "/settings",
+      icon: FolderLock,
+      label: "Documents",
+      path: "/documents",
     },
   ];
 

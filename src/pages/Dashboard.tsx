@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -19,11 +19,7 @@ interface RecentItem {
 
 const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
-  // Mock data
-  const recentItems: RecentItem[] = [
+  const [recentItems, setRecentItems] = useState<RecentItem[]>([
     {
       id: "1",
       title: "Work Notes",
@@ -44,10 +40,24 @@ const Dashboard = () => {
       type: "document",
       date: "May 10, 2023",
     },
-  ];
+  ]);
+  
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // This would be replaced with actual data in a real app
+  const categoryCounters = {
+    notes: 5,
+    passwords: 12,
+    documents: 3
+  };
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
+  };
+
+  const handleAddNew = () => {
+    navigate("/notes");
   };
 
   const handleItemClick = (item: RecentItem) => {
@@ -88,9 +98,9 @@ const Dashboard = () => {
       <div className="px-4 mb-6">
         <h2 className="text-lg font-medium mb-3">Categories</h2>
         <div className="grid grid-cols-3 gap-3">
-          <CategoryButton type="notes" count={5} />
-          <CategoryButton type="passwords" count={12} />
-          <CategoryButton type="documents" count={3} />
+          <CategoryButton type="notes" count={categoryCounters.notes} />
+          <CategoryButton type="passwords" count={categoryCounters.passwords} />
+          <CategoryButton type="documents" count={categoryCounters.documents} />
         </div>
       </div>
 
@@ -121,7 +131,7 @@ const Dashboard = () => {
 
       {/* Add Button */}
       <AddButton 
-        onClick={() => navigate("/notes")} 
+        onClick={handleAddNew} 
       />
 
       {/* Bottom Navigation */}

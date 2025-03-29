@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import SearchBar from "@/components/SearchBar";
 import ItemCard from "@/components/ItemCard";
@@ -19,7 +19,6 @@ interface Note {
 
 const Notes = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [showAddOptions, setShowAddOptions] = useState(false);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [notes, setNotes] = useState<Note[]>([
     {
@@ -54,7 +53,7 @@ const Notes = () => {
     };
     
     setNotes([newNote, ...notes]);
-    setShowAddOptions(false);
+    setSelectedNote(newNote); // Open the new note right away for editing
     toast({
       title: "Note created",
       description: "Your secure note has been created successfully.",
@@ -69,6 +68,25 @@ const Notes = () => {
     setSelectedNote(null);
   };
 
+  const handleSaveNote = (updatedNote: Note) => {
+    setNotes(notes.map(note => note.id === updatedNote.id ? updatedNote : note));
+    setSelectedNote(null);
+    toast({
+      title: "Note saved",
+      description: "Your note has been updated successfully.",
+    });
+  };
+
+  const handleDeleteNote = (noteId: string) => {
+    setNotes(notes.filter(note => note.id !== noteId));
+    setSelectedNote(null);
+    toast({
+      title: "Note deleted",
+      description: "Your note has been deleted.",
+      variant: "destructive",
+    });
+  };
+
   const filteredNotes = notes.filter(
     (note) =>
       note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -77,7 +95,12 @@ const Notes = () => {
   );
 
   if (selectedNote) {
-    return <NoteDetail note={selectedNote} onClose={handleCloseDetail} />;
+    return <NoteDetail 
+      note={selectedNote} 
+      onClose={handleCloseDetail} 
+      onSave={handleSaveNote}
+      onDelete={() => handleDeleteNote(selectedNote.id)}
+    />;
   }
 
   return (
@@ -89,7 +112,7 @@ const Notes = () => {
           onClick={() => navigate("/settings")}
           className="p-2 rounded-full bg-secondary/50"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-muted-foreground"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          <Settings className="h-5 w-5 text-muted-foreground" />
         </button>
       </div>
 

@@ -56,6 +56,7 @@ const Passwords = () => {
     };
     
     setPasswords([newPassword, ...passwords]);
+    setSelectedPassword(newPassword); // Open the new password for editing
     toast({
       title: "Password created",
       description: "Your secure password has been created successfully.",
@@ -69,6 +70,25 @@ const Passwords = () => {
   const handleCloseDetail = () => {
     setSelectedPassword(null);
   };
+  
+  const handleSavePassword = (updatedPassword: Password) => {
+    setPasswords(passwords.map(pw => pw.id === updatedPassword.id ? updatedPassword : pw));
+    setSelectedPassword(null);
+    toast({
+      title: "Password saved",
+      description: "Your password has been updated successfully.",
+    });
+  };
+
+  const handleDeletePassword = (passwordId: string) => {
+    setPasswords(passwords.filter(pw => pw.id !== passwordId));
+    setSelectedPassword(null);
+    toast({
+      title: "Password deleted",
+      description: "Your password has been deleted.",
+      variant: "destructive",
+    });
+  };
 
   const filteredPasswords = passwords.filter(
     (password) =>
@@ -80,7 +100,12 @@ const Passwords = () => {
   );
 
   if (selectedPassword) {
-    return <PasswordDetail password={selectedPassword} onClose={handleCloseDetail} />;
+    return <PasswordDetail 
+      password={selectedPassword} 
+      onClose={handleCloseDetail} 
+      onSave={handleSavePassword}
+      onDelete={() => handleDeletePassword(selectedPassword.id)}
+    />;
   }
 
   return (
