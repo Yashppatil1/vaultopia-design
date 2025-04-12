@@ -1,11 +1,12 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import AuthInput from "@/components/AuthInput";
 import VaultLogo from "@/components/VaultLogo";
 import SecurityAnimation from "@/components/SecurityAnimation";
 import { Lock } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const [stage, setStage] = useState<"initial" | "authenticating" | "error">("initial");
@@ -16,11 +17,12 @@ const Login = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signIn } = useAuth();
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     
-    if (!username) newErrors.username = "Username is required";
+    if (!username) newErrors.username = "Email is required";
     if (!password) newErrors.password = "Password is required";
     if (showPin && !pin) newErrors.pin = "PIN is required";
     if (showPin && pin.length < 4) newErrors.pin = "PIN must be at least 4 digits";
@@ -29,31 +31,19 @@ const Login = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) return;
     
     setStage("authenticating");
 
-    // Simulate authentication process
-    setTimeout(() => {
-      // For demo purposes, let's allow any login for now
-      if (username === "wrong" || password === "wrong") {
-        setStage("error");
-        toast({
-          title: "Authentication Failed",
-          description: "Invalid username or password",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Authentication Successful",
-          description: "Welcome to your Secure Vault",
-        });
-        navigate("/dashboard");
-      }
-    }, 2000);
+    try {
+      await signIn(username, password);
+      // Navigation is handled by the auth state change listener
+    } catch (error) {
+      setStage("error");
+    }
   };
 
   const handleTogglePin = () => {
@@ -85,11 +75,11 @@ const Login = () => {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <AuthInput
-              type="text"
-              label="Username"
+              type="email"
+              label="Email"
               value={username}
               onChange={setUsername}
-              placeholder="Enter your username"
+              placeholder="Enter your email"
               error={errors.username}
             />
 
@@ -139,12 +129,12 @@ const Login = () => {
 
           <p className="text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <a
-              href="/signup"
+            <Link
+              to="/signup"
               className="text-vault-purple hover:underline font-medium"
             >
               Create account
-            </a>
+            </Link>
           </p>
         </div>
       </div>

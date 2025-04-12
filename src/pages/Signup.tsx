@@ -1,11 +1,12 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import AuthInput from "@/components/AuthInput";
 import VaultLogo from "@/components/VaultLogo";
 import SecurityAnimation from "@/components/SecurityAnimation";
 import { Lock } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Signup = () => {
   const [stage, setStage] = useState<"initial" | "creating" | "error">("initial");
@@ -18,6 +19,7 @@ const Signup = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signUp } = useAuth();
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -40,21 +42,23 @@ const Signup = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) return;
     
     setStage("creating");
 
-    // Simulate account creation
-    setTimeout(() => {
+    try {
+      await signUp(email, password, username);
       toast({
         title: "Account Created",
-        description: "Your secure vault is ready to use",
+        description: "Please check your email for verification instructions",
       });
       navigate("/login");
-    }, 2000);
+    } catch (error) {
+      setStage("error");
+    }
   };
 
   const handleTogglePin = () => {
@@ -158,12 +162,12 @@ const Signup = () => {
 
           <p className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <a
-              href="/login"
+            <Link
+              to="/login"
               className="text-vault-purple hover:underline font-medium"
             >
               Sign in
-            </a>
+            </Link>
           </p>
         </div>
       </div>

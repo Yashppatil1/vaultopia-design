@@ -1,8 +1,8 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/hooks/use-theme";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   Bell, 
   ChevronRight, 
@@ -27,14 +27,11 @@ const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
+  const { signOut } = useAuth();
 
-  const handleLogout = () => {
-    // In a real app, we would clear authentication tokens here
-    toast({
-      title: "Logged Out",
-      description: "You have been securely logged out",
-    });
-    navigate("/login");
+  const handleLogout = async () => {
+    await signOut();
+    // The navigation is handled by the auth state change listener
   };
 
   const handlePanicModeToggle = (enabled: boolean) => {
@@ -82,7 +79,7 @@ const Settings = () => {
               <ToggleGroup type="single" value={theme} className="flex justify-center">
                 <ToggleGroupItem 
                   value="light" 
-                  onClick={() => handleThemeChange("light")}
+                  onClick={() => setTheme("light")}
                   className="flex items-center gap-2 data-[state=on]:bg-vault-purple/20 data-[state=on]:text-vault-purple"
                 >
                   <Sun className="h-4 w-4" />
@@ -90,7 +87,7 @@ const Settings = () => {
                 </ToggleGroupItem>
                 <ToggleGroupItem 
                   value="dark" 
-                  onClick={() => handleThemeChange("dark")}
+                  onClick={() => setTheme("dark")}
                   className="flex items-center gap-2 data-[state=on]:bg-vault-purple/20 data-[state=on]:text-vault-purple"
                 >
                   <Moon className="h-4 w-4" />
@@ -198,7 +195,6 @@ const Settings = () => {
           </h2>
           <div className="space-y-1 rounded-lg overflow-hidden border border-white/5">
             <button
-              onClick={handleExportBackup}
               className="w-full flex items-center justify-between p-3 bg-card hover:bg-secondary/50"
             >
               <div className="flex items-center gap-3">
