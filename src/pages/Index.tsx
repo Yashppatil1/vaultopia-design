@@ -12,9 +12,11 @@ const Index = () => {
     
     if (user) {
       // If authenticated, redirect to dashboard
+      console.log("User is authenticated, redirecting to dashboard");
       navigate("/dashboard");
     } else {
       // If not authenticated, redirect to login
+      console.log("User is not authenticated, redirecting to login");
       navigate("/login");
     }
   }, [navigate, user, loading]);
