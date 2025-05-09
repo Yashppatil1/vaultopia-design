@@ -7,13 +7,23 @@ const Index = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const [redirecting, setRedirecting] = useState(false);
+  const [networkError, setNetworkError] = useState(false);
 
   useEffect(() => {
+    // Handle initial load
     if (loading) return;
     
+    // Prevent multiple redirects
     if (redirecting) return;
     
     setRedirecting(true);
+    
+    // Check for network errors in console logs
+    window.addEventListener('error', (e) => {
+      if (e.message?.includes('Failed to fetch')) {
+        setNetworkError(true);
+      }
+    });
     
     if (user) {
       // If authenticated, redirect to dashboard
@@ -29,8 +39,14 @@ const Index = () => {
   return (
     <div className="flex items-center justify-center h-screen">
       <div className="text-center">
-        <h2 className="text-xl font-semibold mb-2">Loading...</h2>
-        <p className="text-muted-foreground">Please wait while we prepare your vault</p>
+        <h2 className="text-xl font-semibold mb-2">
+          {networkError ? "Network Error" : "Loading..."}
+        </h2>
+        <p className="text-muted-foreground">
+          {networkError 
+            ? "Unable to connect to authentication service. You may be offline."
+            : "Please wait while we prepare your vault"}
+        </p>
       </div>
     </div>
   );

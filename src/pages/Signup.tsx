@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import AuthInput from "@/components/AuthInput";
 import VaultLogo from "@/components/VaultLogo";
 import SecurityAnimation from "@/components/SecurityAnimation";
-import { Lock } from "lucide-react";
+import { Lock, Wifi, WifiOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Signup = () => {
@@ -17,6 +17,7 @@ const Signup = () => {
   const [pin, setPin] = useState("");
   const [usePin, setUsePin] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [networkError, setNetworkError] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { signUp } = useAuth();
@@ -48,6 +49,7 @@ const Signup = () => {
     if (!validateForm()) return;
     
     setStage("creating");
+    setNetworkError(false);
 
     try {
       await signUp(email, password, username);
@@ -56,7 +58,15 @@ const Signup = () => {
         description: "Please check your email for verification instructions",
       });
       navigate("/login");
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message === "Failed to fetch") {
+        setNetworkError(true);
+        toast({
+          title: "Network Error",
+          description: "Unable to connect to the server. You may be offline.",
+          variant: "destructive",
+        });
+      }
       setStage("error");
     }
   };
@@ -65,7 +75,12 @@ const Signup = () => {
     setUsePin(!usePin);
   };
 
-  if (stage === "creating") {
+  const handleRetry = () => {
+    setStage("initial");
+    setNetworkError(false);
+  };
+
+  if (stage === "creating" && !networkError) {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
         <SecurityAnimation type="lock" onComplete={() => {}} />
@@ -86,6 +101,13 @@ const Signup = () => {
             <p className="text-muted-foreground">
               Set up your secure, encrypted storage
             </p>
+            
+            {networkError && (
+              <div className="flex items-center justify-center gap-2 text-destructive mt-2">
+                <WifiOff className="h-4 w-4" />
+                <span className="text-sm">Network connection error</span>
+              </div>
+            )}
           </div>
 
           <form onSubmit={handleSignup} className="space-y-4">
@@ -158,6 +180,19 @@ const Signup = () => {
             >
               Create Account
             </button>
+            
+            {networkError && (
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={handleRetry}
+                  className="text-sm text-vault-purple hover:underline flex items-center justify-center gap-2 mx-auto"
+                >
+                  <Wifi className="h-3 w-3" /> 
+                  Retry with network connection
+                </button>
+              </div>
+            )}
           </form>
 
           <p className="text-center text-sm text-muted-foreground">
